@@ -1,0 +1,372 @@
+# base
+base:
+  platformConfig:
+    fqdn: cdk.example.com
+    ingressTlsCert: sslcert
+    adminClientId: idm-admin-ui
+    amAdminUrl: https://cdk.example.com/am/ui-admin/
+    amServerFqdn: cdk.example.com
+    amStoresCtsServers: ds-idrepo-0.ds-idrepo:1636
+    amStoresUserServers: ds-idrepo-0.ds-idrepo:1636
+    amUrl: https://cdk.example.com/am
+    autorestoreFromDsbackup: "false"
+    certIssuer: default-issuer
+    dsbackupDirectory: ""
+    dsbackupHosts: ds-cts-0,ds-idrepo-0
+    enableWorkforce: "false"
+    enduserClientId: end-user-ui
+    enduserUiUrl: https://cdk.example.com/enduser
+    forgeopsPlatformSize: cdk
+    fraasLoggingUrl: ""
+    idmAdminUrl: https://cdk.example.com/admin
+    idmExportUrl: https://cdk.example.com/export
+    idmRestUrl: https://cdk.example.com/openidm
+    idmUploadUrl: https://cdk.example.com/upload
+    loginUiUrl: https://cdk.example.com/login/#/service/Login
+    platformAdminUrl: https://cdk.example.com/platform
+    platformUiIsFraas: "false"
+    platformTestPort: "2525"
+    platformTestName: cdk.example.com
+    platformTestEmail: noreply@example.com
+    theme: default
+  base:
+    labels:
+      app.kubernetes.io/part-of: forgerock
+
+# secrets
+secrets:
+  secrets:
+    labels:
+      app.kubernetes.io/part-of: forgerock
+  certificate:
+    subject:
+      organizations: ForgeRock.com
+    dname: O=ForgeRock,L=Bristol,ST=Bristol,C=UK
+
+# ds
+ds:
+  dsIdrepo:
+    labels:
+      app.kubernetes.io/component: directory
+      app.kubernetes.io/part-of: forgerock
+    passwords:
+      - uid: admin
+        key: dirmanager.pw
+        secretName: ds-passwords
+      - uid: am-config,ou=admins,ou=am-config
+        key: AM_STORES_APPLICATION_PASSWORD
+        secretName: ds-env-secrets
+      - uid: am-identity-bind-account,ou=admins,ou=identities
+        key: AM_STORES_USER_PASSWORD
+        secretName: ds-env-secrets
+      - uid: monitor
+        key: monitor.pw
+        secretName: ds-passwords
+      - uid: openam_cts,ou=admins,ou=famrecords,ou=openam-session,ou=tokens
+        key: AM_STORES_CTS_PASSWORD
+        secretName: ds-env-secrets
+    env:
+      DS_TEST: "MY_TEST_VARIABLE"
+    image:
+      repository: us-docker.pkg.dev/forgeops-public/images/ds
+      tag: 7.3.2
+      imagePullPolicy: Always
+    resources:
+      limits:
+        memory: 1024Mi
+      requests:
+        cpu: 500m
+        memory: 900Mi
+    secrets:
+      masterSecretName: ds-master-keypair
+      sslSecretName: ds-ssl-keypair
+      truststoreSecretName: ds-ssl-keypair
+    storage:
+      size: 10Gi
+      className: fast
+    snapshot:
+      className: ds-snapshot-class
+    replicas: 1
+    snapshots:
+      enabled: false
+      periodMinutes: 10
+      snapshotsRetained: 3
+
+# am
+am:
+  am:
+    service:
+      type: ClusterIP
+      ports:
+      - name: am
+        port: 80
+        protocol: TCP
+        targetPort: 8081
+    replicas: 1
+    labels:
+      app: am
+      app.kubernetes.io/component: am
+      app.kubernetes.io/instance: am
+      app.kubernetes.io/name: am
+      app.kubernetes.io/part-of: forgerock
+      tier: middle
+    podAnnotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    fbcInit:
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/am
+        tag: 7.3.0
+        imagePullPolicy: Always
+    openam:
+      env:
+        amStoresSslEnabled: "true"
+        amStoresUserType: LDAPv3ForForgeRockIAM
+        truststorePassword: changeit
+        truststorePath: /home/forgerock/amtruststore
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/am
+        tag: 7.3.0
+        imagePullPolicy: Always
+      livenessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 5
+      readinessProbe:
+        initialDelaySeconds: 20
+        periodSeconds: 10
+        timeoutSeconds: 5
+      startupProbe:
+        failureThreshold: 40
+        periodSeconds: 10
+      resources:
+        limits:
+          memory: 2000Mi
+        requests:
+          cpu: 250m
+          memory: 1800Mi
+    truststoreInit:
+      env:
+        amPemTruststore: /var/run/secrets/truststore/cacerts
+        amPemTruststoreDs: /var/run/secrets/truststore/ca.crt
+        truststorePassword: changeit
+        truststorePath: /truststore/amtruststore
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/am
+        tag: 7.3.0
+        imagePullPolicy: Always
+      securityContext: 
+        runAsGroup: 0
+        runAsUser: 11111
+    secrets:
+      amster:
+        oauthPassword: password
+        twilioAccountSID: "AC6a8dd6c7d936eb55d7aa7b0fe7c12a99"
+        twilioAuthToken: "862007d29650c599d045f4c067f20fd4"
+        twilioServiceSID: "VA557a24e53318517b7b1970510cbf4f8b"
+
+# idm
+idm:
+  idm:
+    service:
+      type: ClusterIP
+      ports:
+      - name: idm
+        port: 80
+        protocol: TCP
+        targetPort: 8080
+    replicas: 1
+    labels:
+      app: idm
+      app.kubernetes.io/component: idm
+      app.kubernetes.io/instance: idm
+      app.kubernetes.io/name: idm
+      app.kubernetes.io/part-of: forgerock
+      tier: middle
+    podAnnotations: 
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    fbcInit:
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/idm
+        tag: 7.3.0
+        imagePullPolicy: Always
+    idmEnvconfigDirs: /opt/openidm/resolver
+    loggingProperties: /var/run/openidm/logging/logging.properties
+    openidm:
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/idm
+        tag: 7.3.0
+        imagePullPolicy: Always
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 60
+        timeoutSeconds: 5
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 5
+      resources:
+        limits:
+          memory: 1280Mi
+        requests:
+          cpu: 250m
+          memory: 768Mi
+    openidmAnonymousPassword: anonymous
+    openidmAuditHandlerJsonEnabled: "false"
+    openidmAuditHandlerStdoutEnabled: "true"
+    openidmClusterRemoveOfflineNodeState: "true"
+    openidmConfigRepoEnabled: "false"
+    openidmIcfRetryDelayseconds: "10"
+    openidmIcfRetryMaxretries: "12"
+    truststoreInit:
+      env:
+        idmPemTruststore: /var/run/secrets/truststore/ca.crt
+        truststorePassword: changeit
+        truststorePath: /truststore/idmtruststore
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/idm
+        tag: 7.3.0
+        imagePullPolicy: Always
+      securityContext: 
+        runAsGroup: 0
+        runAsUser: 11111
+
+# amster
+amster:
+  amster:
+    labels:
+      app: amster
+      app.kubernetes.io/component: am
+      app.kubernetes.io/instance: amster
+      app.kubernetes.io/name: amster
+      app.kubernetes.io/part-of: forgerock
+      tier: middle
+    amster:
+      args:
+      - |
+        cp /amster-scripts/* /opt/amster/
+        ./docker-entrypoint.sh import
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/amster
+        tag: 7.3.0
+        imagePullPolicy: Always
+      resources:
+        limits:
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+      securityContext: 
+        runAsGroup: 0
+        runAsUser: 11111
+    backoffLimit: 0
+    pause:
+      args:
+      - bash
+      - -c
+      - sleep ${DURATION:-10}
+      image:
+        repository: us-docker.pkg.dev/forgeops-public/images/amster
+        tag: 7.3.0
+        imagePullPolicy: Always
+    unpack:
+      args:
+      - |-
+        cd /amster-staging
+        tar -xzvf amster-import.tar.gz -C /amster-config
+        tar -xzvf amster-scripts.tar.gz -C /amster-scripts
+      image:
+        repository: busybox
+        tag: latest
+
+# admin_ui
+admin_ui:
+  adminUi:
+    service:
+      type: ClusterIP
+      ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    replicas: 1
+    labels:
+      app.kubernetes.io/component: ui
+      app.kubernetes.io/instance: admin-ui
+      app.kubernetes.io/name: admin-ui
+      app.kubernetes.io/part-of: forgerock
+      tier: ui
+    image:
+      repository: gcr.io/forgerock-io/platform-admin-ui
+      tag: 7.3.1
+      imagePullPolicy: Always
+    resources:
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
+    securityContext: 
+      runAsGroup: 0
+      runAsUser: 101
+
+# end_user_ui
+end_user_ui:
+  endUserUi:
+    service:
+      type: ClusterIP
+      ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    replicas: 1
+    labels:
+      app.kubernetes.io/component: ui
+      app.kubernetes.io/instance: end-user-ui
+      app.kubernetes.io/name: end-user-ui
+      app.kubernetes.io/part-of: forgerock
+      tier: ui
+    image:
+      repository: gcr.io/forgerock-io/platform-enduser-ui
+      tag: 7.3.1
+      imagePullPolicy: Always
+    resources:
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 101
+
+# login_ui
+login_ui:
+  loginUi:
+    service:
+      type: ClusterIP
+      ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    replicas: 1
+    labels:
+      app.kubernetes.io/component: ui
+      app.kubernetes.io/instance: login-ui
+      app.kubernetes.io/name: login-ui
+      app.kubernetes.io/part-of: forgerock
+      tier: ui
+    image:
+      repository: gcr.io/forgerock-io/platform-login-ui
+      tag: 7.3.1
+      imagePullPolicy: Always
+    resources:
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 101

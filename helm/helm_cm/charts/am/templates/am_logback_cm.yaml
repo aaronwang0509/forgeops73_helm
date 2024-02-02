@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: am-logback
+  labels:
+    {{- with .Values.am.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "am.labels" . | nindent 4 }}
+data:
+  logback.xml: |-
+    {{- .Files.Get "scripts/logback.xml" | nindent 4 }}

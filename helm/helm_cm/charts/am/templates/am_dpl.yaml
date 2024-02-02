@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: am
+  labels:
+    {{- with .Values.am.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "am.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.am.replicas }}
+  selector:
+    matchLabels:
+    {{- include "am.selectorLabels" . | nindent 6 }}
+    {{- with .Values.am.labels }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+      {{- include "am.selectorLabels" . | nindent 8 }}
+      {{- with .Values.am.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      annotations:
+        {{- toYaml .Values.am.podAnnotations | nindent 8}}
+    spec:
+      containers:
+      - command:
+        - bash
+        - /home/forgerock/docker-entrypoint.sh
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AM_STORES_SSL_ENABLED
+          value: {{ quote .Values.am.openam.env.amStoresSslEnabled }}
+        - name: TRUSTSTORE_PATH
+          value: {{ quote .Values.am.openam.env.truststorePath }}
+        - name: TRUSTSTORE_PASSWORD
+          value: {{ quote .Values.am.openam.env.truststorePassword }}
+        - name: AM_STORES_USER_TYPE
+          value: {{ quote .Values.am.openam.env.amStoresUserType }}
+        envFrom:
+        - secretRef:
+            name: am-env-secrets
+        - configMapRef:
+            name: platform-config
+        - secretRef:
+            name: amster-env-secrets
+        - secretRef:
+            name: ds-env-secrets
+        - secretRef:
+            name: am-amster-import-secrets
+        image: {{ .Values.am.openam.image.repository }}:{{ .Values.am.openam.image.tag }}
+        imagePullPolicy: {{ .Values.am.openam.image.imagePullPolicy }}
+        livenessProbe:
+          httpGet:
+            path: /am/json/health/live
+            port: 8080
+          {{- with .Values.am.openam.livenessProbe }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        name: openam
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /am/json/health/ready
+            port: 8080
+          {{- with .Values.am.openam.readinessProbe }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        resources: {{- toYaml .Values.am.openam.resources | nindent 10 }}
+        startupProbe:
+          httpGet:
+            path: /am/json/health/live
+            port: 8080
+          {{- with .Values.am.openam.startupProbe }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        volumeMounts:
+        - mountPath: /home/forgerock/amtruststore
+          name: new-truststore
+          readOnly: true
+          subPath: amtruststore
+        - mountPath: /var/run/secrets/am
+          name: am-secrets
+        - mountPath: /var/run/secrets/amster
+          name: amster-key
+        - mountPath: /home/forgerock/openam
+          name: fbc
+        - mountPath: /home/forgerock/logging
+          name: am-logback
+      initContainers:
+      - command:
+        - /bin/bash
+        - -c
+        - |
+          if [ -d /fbc/config ];
+          then
+            echo "Existing openam configuration found. Skipping copy"
+          else
+            echo "Copying docker image configuration files to the shared volume"
+            cd /home/forgerock/openam
+            cp -r .homeVersion * /fbc
+          fi
+        image: {{ .Values.am.fbcInit.image.repository }}:{{ .Values.am.fbcInit.image.tag }}
+        imagePullPolicy: {{ .Values.am.fbcInit.image.imagePullPolicy }}
+        name: fbc-init
+        resources: {}
+        volumeMounts:
+        - mountPath: /fbc
+          name: fbc
+      - command:
+        - /home/forgerock/import-pem-certs.sh
+        env:
+        - name: TRUSTSTORE_PATH
+          value: {{ quote .Values.am.truststoreInit.env.truststorePath }}
+        - name: TRUSTSTORE_PASSWORD
+          value: {{ quote .Values.am.truststoreInit.env.truststorePassword }}
+        - name: AM_PEM_TRUSTSTORE
+          value: {{ quote .Values.am.truststoreInit.env.amPemTruststore }}
+        - name: AM_PEM_TRUSTSTORE_DS
+          value: {{ quote .Values.am.truststoreInit.env.amPemTruststoreDs }}
+        image: {{ .Values.am.truststoreInit.image.repository }}:{{ .Values.am.truststoreInit.image.tag }}
+        imagePullPolicy: {{ .Values.am.truststoreInit.image.imagePullPolicy }}
+        name: truststore-init
+        resources: {}
+        volumeMounts:
+        - mountPath: /truststore
+          name: new-truststore
+        - mountPath: /var/run/secrets/truststore
+          name: truststore
+      securityContext:
+        {{- toYaml .Values.am.truststoreInit.securityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - emptyDir: {}
+        name: fbc
+      - name: am-secrets
+        projected:
+          sources:
+          - secret:
+              name: am-passwords
+          - secret:
+              name: am-keystore
+      - name: amster-key
+        secret:
+          items:
+          - key: id_rsa.pub
+            path: authorized_keys
+          secretName: amster
+      - name: truststore
+        projected:
+          sources:
+          - secret:
+              name: truststore-pem
+          - secret:
+              name: ds-ssl-keypair
+      - emptyDir: {}
+        name: new-truststore
+      - configMap:
+          name: am-logback
+        name: am-logback

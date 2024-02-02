@@ -1,0 +1,45 @@
+apiVersion: directory.forgerock.io/v1alpha1
+kind: DirectoryService
+metadata:
+  name: ds-idrepo
+  labels:
+    {{- with .Values.dsIdrepo.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "ds.labels" . | nindent 4 }}
+spec:
+  passwords:
+    {{- range .Values.dsIdrepo.passwords }}
+    uid={{ .uid }}:
+      key: {{ .key }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  podTemplate:
+    env:
+    - name: DS_TEST
+      value: {{ .Values.dsIdrepo.env.DS_TEST }}
+    image: {{ .Values.dsIdrepo.image.repository }}:{{ .Values.dsIdrepo.image.tag }}
+    imagePullPolicy: {{ .Values.dsIdrepo.image.imagePullPolicy }}
+    resources:
+      limits:
+        memory: {{ .Values.dsIdrepo.resources.limits.memory }}
+      requests:
+        cpu: {{ .Values.dsIdrepo.resources.requests.cpu }}
+        memory: {{ .Values.dsIdrepo.resources.requests.memory }}
+    secrets:
+      masterSecretName: {{ .Values.dsIdrepo.secrets.masterSecretName }}
+      sslSecretName: {{ .Values.dsIdrepo.secrets.sslSecretName }}
+      truststoreSecretName: {{ .Values.dsIdrepo.secrets.truststoreSecretName }}
+    volumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.dsIdrepo.storage.size }}
+      storageClassName: {{ .Values.dsIdrepo.storage.className }}
+    volumeSnapshotClassName: {{ .Values.dsIdrepo.snapshot.className }}
+  replicas: {{ .Values.dsIdrepo.replicas }}
+  snapshots:
+    enabled: {{ .Values.dsIdrepo.snapshots.enabled }}
+    periodMinutes: {{ .Values.dsIdrepo.snapshots.periodMinutes }}
+    snapshotsRetained: {{ .Values.dsIdrepo.snapshots.snapshotsRetained }}

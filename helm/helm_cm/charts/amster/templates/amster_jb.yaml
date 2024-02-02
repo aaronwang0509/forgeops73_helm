@@ -1,0 +1,106 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: amster
+  labels:
+    {{- with .Values.amster.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }} 
+  {{- include "amster.labels" . | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.amster.backoffLimit }}
+  template:
+    metadata:
+      labels:
+      {{- with .Values.amster.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "amster.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - args: {{- toYaml .Values.amster.pause.args | nindent 8 }}
+        envFrom:
+        - configMapRef:
+            name: amster-retain
+            optional: true
+        image: {{ .Values.amster.pause.image.repository }}:{{ .Values.amster.pause.image.tag }}
+        imagePullPolicy: {{ .Values.amster.pause.image.imagePullPolicy }}
+        name: pause
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /etc/hosts
+          initialDelaySeconds: 1
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/run/secrets/amster
+          name: amster-secrets
+          readOnly: true
+        - mountPath: /var/tmp/amster
+          name: export-files
+      initContainers:
+      - args: {{- toYaml .Values.amster.unpack.args | nindent 8 }}
+        command:
+        - /bin/sh
+        - -c
+        image: {{ .Values.amster.unpack.image.repository }}
+        name: unpack
+        resources: {}
+        volumeMounts:
+        - mountPath: /amster-staging
+          name: amster-files
+        - mountPath: /amster-config
+          name: amster-config
+        - mountPath: /amster-scripts
+          name: amster-scripts
+      - args: {{- toYaml .Values.amster.amster.args | nindent 8 }}
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        envFrom:
+        - configMapRef:
+            name: platform-config
+        - secretRef:
+            name: amster-env-secrets
+        - secretRef:
+            name: ds-env-secrets
+        image: {{ .Values.amster.amster.image.repository }}:{{ .Values.amster.amster.image.tag }}
+        imagePullPolicy: {{ .Values.amster.amster.image.imagePullPolicy }}
+        name: amster
+        resources: {{- toYaml .Values.amster.amster.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /opt/amster/config
+          name: amster-config
+        - mountPath: /amster-scripts
+          name: amster-scripts
+        - mountPath: /var/run/secrets/amster
+          name: amster-secrets
+          readOnly: true
+        - mountPath: /var/tmp/amster
+          name: export-files
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.amster.amster.securityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - configMap:
+          name: amster-files
+        name: amster-files
+      - emptyDir: {}
+        name: amster-config
+      - emptyDir: {}
+        name: amster-scripts
+      - name: amster-secrets
+        secret:
+          secretName: amster
+      - configMap:
+          name: platform-config
+        name: platform-config
+      - emptyDir: {}
+        name: export-files

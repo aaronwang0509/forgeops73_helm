@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amster-files
+  creationTimestamp: null
+  labels:
+    {{- with .Values.amster.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }} 
+  {{- include "amster.labels" . | nindent 4 }}
+binaryData:
+  amster-import.tar.gz:  {{ .Files.Get "files/amster-import.tar.gz" | b64enc }}
+  amster-scripts.tar.gz: {{ .Files.Get "files/amster-scripts.tar.gz" | b64enc }}

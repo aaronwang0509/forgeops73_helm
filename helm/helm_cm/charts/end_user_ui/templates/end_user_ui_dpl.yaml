@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: end-user-ui
+  labels:
+    {{- with .Values.endUserUi.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "end_user_ui.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.endUserUi.replicas }}
+  selector:
+    matchLabels:
+    {{- include "end_user_ui.selectorLabels" . | nindent 6 }}
+    {{- with .Values.endUserUi.labels }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+      {{- include "end_user_ui.selectorLabels" . | nindent 8 }}
+      {{- with .Values.endUserUi.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+      - env:
+        - name: SUBFOLDER
+          value: enduser
+        envFrom:
+        - configMapRef:
+            name: platform-config
+        image: {{ .Values.endUserUi.image.repository }}:{{ .Values.endUserUi.image.tag }}
+        imagePullPolicy: {{ .Values.endUserUi.image.imagePullPolicy }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/sbin/nginx
+              - -s
+              - quit
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: end-user-ui
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {{- toYaml .Values.endUserUi.resources | nindent 10 }}
+      securityContext:
+        {{- toYaml .Values.endUserUi.securityContext | nindent 8 }}

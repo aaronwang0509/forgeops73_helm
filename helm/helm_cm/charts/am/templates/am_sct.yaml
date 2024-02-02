@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: am-amster-import-secrets
+  labels:
+    {{- with .Values.am.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "am.labels" . | nindent 4 }}
+type: Opaque
+data:
+  AM_OAUTH_PASSWORD: {{ .Values.am.secrets.amster.oauthPassword | b64enc | quote }}
+  AM_TWILIO_ACCOUNTSID: {{ .Values.am.secrets.amster.twilioAccountSID | b64enc | quote }}
+  AM_TWILIO_AUTHTOKEN: {{ .Values.am.secrets.amster.twilioAuthToken | b64enc | quote }}
+  AM_TWILIO_SERVICESID: {{ .Values.am.secrets.amster.twilioServiceSID | b64enc | quote }}

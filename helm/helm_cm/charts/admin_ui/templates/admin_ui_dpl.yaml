@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-ui
+  labels:
+    {{- with .Values.adminUi.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "admin_ui.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.adminUi.replicas }}
+  selector:
+    matchLabels:
+    {{- include "admin_ui.selectorLabels" . | nindent 6 }}
+    {{- with .Values.adminUi.labels }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+      {{- include "admin_ui.selectorLabels" . | nindent 8 }}
+      {{- with .Values.adminUi.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+      - env:
+        - name: SUBFOLDER
+          value: platform
+        envFrom:
+        - configMapRef:
+            name: platform-config
+        image: {{ .Values.adminUi.image.repository }}:{{ .Values.adminUi.image.tag }}
+        imagePullPolicy: {{ .Values.adminUi.image.imagePullPolicy }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/sbin/nginx
+              - -s
+              - quit
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: admin-ui
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {{- toYaml .Values.adminUi.resources | nindent 10 }}
+      securityContext:
+        {{- toYaml .Values.adminUi.securityContext | nindent 8 }}

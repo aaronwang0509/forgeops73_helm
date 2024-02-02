@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-ui
+  labels:
+    {{- with .Values.loginUi.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "login_ui.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.loginUi.replicas }}
+  selector:
+    matchLabels:
+    {{- include "login_ui.selectorLabels" . | nindent 6 }}
+    {{- with .Values.loginUi.labels }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+      {{- include "login_ui.selectorLabels" . | nindent 8 }}
+      {{- with .Values.loginUi.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+      - env:
+        - name: SUBFOLDER
+          value: am/XUI
+        envFrom:
+        - configMapRef:
+            name: platform-config
+        image: {{ .Values.loginUi.image.repository }}:{{ .Values.loginUi.image.tag }}
+        imagePullPolicy: {{ .Values.loginUi.image.imagePullPolicy }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/sbin/nginx
+              - -s
+              - quit
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        name: login-ui
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {{- toYaml .Values.loginUi.resources | nindent 10 }}
+      securityContext:
+        {{- toYaml .Values.loginUi.securityContext | nindent 8 }}

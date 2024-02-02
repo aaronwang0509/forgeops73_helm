@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: end-user-ui
+  labels:
+    {{- with .Values.endUserUi.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}  
+  {{- include "end_user_ui.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.endUserUi.service.type }}
+  selector:
+    {{- include "end_user_ui.selectorLabels" . | nindent 4 }}
+    {{- with .Values.endUserUi.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  ports:
+  {{- toYaml .Values.endUserUi.service.ports | nindent 2}}

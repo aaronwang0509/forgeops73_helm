@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: idm
+  labels:
+    {{- with .Values.idm.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "idm.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.idm.service.type }}
+  selector:
+    {{- include "idm.selectorLabels" . | nindent 4 }}
+    {{- with .Values.idm.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  ports:
+  {{- toYaml .Values.idm.service.ports | nindent 2}}

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  labels:
+    {{- with .Values.base.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- include "base.labels" . | nindent 4 }}
+data:
+  ADMIN_CLIENT_ID: {{ .Values.platformConfig.adminClientId | quote }}
+  AM_ADMIN_URL: {{ .Values.platformConfig.amAdminUrl | quote }}
+  AM_SERVER_FQDN: {{ .Values.platformConfig.amServerFqdn | quote }}
+  AM_STORES_CTS_SERVERS: {{ .Values.platformConfig.amStoresCtsServers | quote }}
+  AM_STORES_USER_SERVERS: {{ .Values.platformConfig.amStoresUserServers | quote }}
+  AM_URL: {{ .Values.platformConfig.amUrl | quote }}
+  AUTORESTORE_FROM_DSBACKUP: {{ .Values.platformConfig.autorestoreFromDsbackup | quote }}
+  CERT_ISSUER: {{ .Values.platformConfig.certIssuer | quote }}
+  DSBACKUP_DIRECTORY: {{ .Values.platformConfig.dsbackupDirectory | quote }}
+  DSBACKUP_HOSTS: {{ .Values.platformConfig.dsbackupHosts | quote }}
+  ENABLE_WORKFORCE: {{ .Values.platformConfig.enableWorkforce | quote }}
+  ENDUSER_CLIENT_ID: {{ .Values.platformConfig.enduserClientId | quote }}
+  ENDUSER_UI_URL: {{ .Values.platformConfig.enduserUiUrl | quote }}
+  FORGEOPS_PLATFORM_SIZE: {{ .Values.platformConfig.forgeopsPlatformSize | quote }}
+  FQDN: {{ .Values.platformConfig.fqdn | quote }}
+  FRAAS_LOGGING_URL: {{ .Values.platformConfig.fraasLoggingUrl | quote }}
+  IDM_ADMIN_URL: {{ .Values.platformConfig.idmAdminUrl | quote }}
+  IDM_EXPORT_URL: {{ .Values.platformConfig.idmExportUrl | quote }}
+  IDM_REST_URL: {{ .Values.platformConfig.idmRestUrl | quote }}
+  IDM_UPLOAD_URL: {{ .Values.platformConfig.idmUploadUrl | quote }}
+  LOGIN_UI_URL: {{ .Values.platformConfig.loginUiUrl | quote }}
+  PLATFORM_ADMIN_URL: {{ .Values.platformConfig.platformAdminUrl | quote }}
+  PLATFORM_UI_IS_FRAAS: {{ .Values.platformConfig.platformUiIsFraas | quote }}
+  PLATFORM_TEST_PORT: {{ .Values.platformConfig.platformTestPort | quote }}
+  PLATFORM_TEST_NAME: {{ .Values.platformConfig.platformTestName | quote }}
+  PLATFORM_TEST_EMAIL: {{ .Values.platformConfig.platformTestEmail | quote }}
+  THEME: {{ .Values.platformConfig.theme | quote }}
