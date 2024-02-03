@@ -18,41 +18,41 @@ help() {
 
 # Function for starting minikube and related processes
 install_minikube() {
-    cd forgeops/cluster/minikube
+    cd cluster/minikube
     ./cdk-minikube start
     kubectx minikube
-    cd ../../../helm/controllers
+    cd ../../controllers
     ./install_all.sh
-    cd ..
+    cd ../helm
     helm upgrade helm ./helm_cm --install -f helm_cm/minikube.yaml
 }
 
 # Function for deleting minikube
 delete_minikube() {
-    cd forgeops/cluster/minikube
+    cd cluster/minikube
     ./cdk-minikube delete
 }
 
 # Function for installing on AWS
 install_aws() {
-    cd forgeops-extras/terraform
+    cd cluster/forgeops-extras/terraform
     ./tf-apply
     aws eks update-kubeconfig --name tf-idp-small
-    cd ../../helm/controllers
+    cd ../../../controllers
     ./install_all.sh
-    cd ..
+    cd ../helm
     helm upgrade helm ./helm_cm --install -f helm_cm/aws.yaml
 }
 
 # Function for deleting on AWS
 delete_aws() {
-    cd forgeops-extras/terraform
+    cd cluster/forgeops-extras/terraform
     ./tf-destroy
 }
 
 # Function for displaying information
 info() {
-    cd helm/controllers
+    cd controllers
     ./print_info.sh
 }
 
