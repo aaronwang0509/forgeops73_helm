@@ -42,6 +42,7 @@ aws configure
 For Minikube:
 
 ```bash
+minikube delete # if you already have a minikube cluster running
 ./forgeops.sh install minikube
 ```
 
