@@ -19,7 +19,7 @@ help() {
 # Function for starting minikube and related processes
 install_minikube() {
     cd cluster/minikube
-    ./cdk-minikube start
+    ./minikube.sh start
     kubectx minikube
     cd ../../controllers
     ./install_all.sh
@@ -30,7 +30,7 @@ install_minikube() {
 # Function for deleting minikube
 delete_minikube() {
     cd cluster/minikube
-    ./cdk-minikube delete
+    ./minikube.sh delete
 }
 
 # Function for installing on AWS
