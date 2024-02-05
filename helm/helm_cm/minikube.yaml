@@ -68,8 +68,8 @@ ds:
     env:
       DS_TEST: "MY_TEST_VARIABLE"
     image:
-      repository: us-docker.pkg.dev/forgeops-public/images/ds
-      tag: 7.3.2
+      repository: docker.io/aaronwang0509/ds-build
+      tag: 0.0.1
       imagePullPolicy: IfNotPresent
     resources:
       limits:
@@ -114,8 +114,8 @@ am:
       cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     fbcInit:
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/am
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/am-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
     openam:
       env:
@@ -124,8 +124,8 @@ am:
         truststorePassword: changeit
         truststorePath: /home/forgerock/amtruststore
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/am
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/am-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
       livenessProbe:
         initialDelaySeconds: 30
@@ -151,8 +151,8 @@ am:
         truststorePassword: changeit
         truststorePath: /truststore/amtruststore
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/am
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/am-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
       securityContext: 
         runAsGroup: 0
@@ -186,15 +186,15 @@ idm:
       cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     fbcInit:
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/idm
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/idm-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
     idmEnvconfigDirs: /opt/openidm/resolver
     loggingProperties: /var/run/openidm/logging/logging.properties
     openidm:
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/idm
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/idm-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
       livenessProbe:
         initialDelaySeconds: 120
@@ -223,8 +223,8 @@ idm:
         truststorePassword: changeit
         truststorePath: /truststore/idmtruststore
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/idm
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/idm-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
       securityContext: 
         runAsGroup: 0
@@ -246,8 +246,8 @@ amster:
         cp /amster-scripts/* /opt/amster/
         ./docker-entrypoint.sh import
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/amster
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/amster-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
       resources:
         limits:
@@ -265,8 +265,8 @@ amster:
       - -c
       - sleep ${DURATION:-10}
       image:
-        repository: us-docker.pkg.dev/forgeops-public/images/amster
-        tag: 7.3.0
+        repository: docker.io/aaronwang0509/amster-build
+        tag: 0.0.1
         imagePullPolicy: IfNotPresent
     unpack:
       args:
@@ -296,8 +296,8 @@ admin_ui:
       app.kubernetes.io/part-of: forgerock
       tier: ui
     image:
-      repository: gcr.io/forgerock-io/platform-admin-ui
-      tag: 7.3.1
+      repository: docker.io/aaronwang0509/platform-admin-ui
+      tag: 7.3.0
       imagePullPolicy: IfNotPresent
     resources:
       limits:
@@ -327,8 +327,8 @@ end_user_ui:
       app.kubernetes.io/part-of: forgerock
       tier: ui
     image:
-      repository: gcr.io/forgerock-io/platform-enduser-ui
-      tag: 7.3.1
+      repository: docker.io/aaronwang0509/platform-enduser-ui
+      tag: 7.3.0
       imagePullPolicy: IfNotPresent
     resources:
       limits:
@@ -358,8 +358,8 @@ login_ui:
       app.kubernetes.io/part-of: forgerock
       tier: ui
     image:
-      repository: gcr.io/forgerock-io/platform-login-ui
-      tag: 7.3.1
+      repository: docker.io/aaronwang0509/platform-login-ui
+      tag: 7.3.0
       imagePullPolicy: IfNotPresent
     resources:
       limits:
