@@ -1,6 +1,6 @@
 # ForgeOps Helm Deployment Guide
 
-This guide provides step-by-step instructions for ForgeOps Helm project based on ForgeOps 7.3 version.
+This guide provides step-by-step instructions for ForgeOps Helm project based on ForgeOps 7.3 version. For more information about the project, refer to the [Project Introduction](./intro/intro.md).
 
 ## Prerequisites
 
