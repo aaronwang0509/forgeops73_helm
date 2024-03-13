@@ -15,6 +15,7 @@ pipeline {
                 checkout scm
                 sh 'git config user.name "${USERNAME}"'
                 sh 'git config user.email "${EMAIL}"'
+                sh 'git checkout main'
             }
         }
 
@@ -38,7 +39,6 @@ pipeline {
             steps {
                 sshagent(['GITHUB_SSHKEY_ID']) {
                     script {
-                        sh 'git checkout gh-pages'
                         sh 'git add .'
                         sh 'git commit -m "Update Helm chart"'
                         sh 'git push'
