@@ -12,34 +12,42 @@ pipeline {
     stages {
         stage('Prepare Environment') {
             steps {
-                checkout scm
-                sh 'git config user.name "${USERNAME}"'
-                sh 'git config user.email "${EMAIL}"'
+                sh "git checkout gh-pages"
             }
         }
 
         stage('Package Helm Chart') {
             steps {
-                dir("${CHART_DIR}") {
-                    sh 'helm package .'
+                dir('${CHART_DIR}') {
+                    sh "helm package ."
                 }
             }
         }
 
         stage('Update Helm Repository') {
             steps {
-                dir("${CHART_DIR}") {
-                    sh 'helm repo index . --url ${REPO_URL} --merge index.yaml'
+                dir('${CHART_DIR}') {
+                    sh "helm repo index . --url ${REPO_URL} --merge index.yaml"
                 }
             }
         }
 
-        stage('Push Changes') {
+        stage('Add and Commit Changes') {
             steps {
-                sh 'git checkout gh-pages'
-                sh 'git add .'
-                sh 'git commit -m "Update Helm chart"'
-                sh 'git push origin gh-pages'
+                script {
+                    sh "git add ."
+                    sh "git commit -m 'Update helm chart'"
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                sshagent(['GITHUB_SSHKEY_ID']) {
+                    script {
+                        sh "git push origin gh-pages"
+                    }
+                }
             }
         }
     }
