@@ -38,6 +38,7 @@ pipeline {
             steps {
                 sshagent(['GITHUB_SSHKEY_ID']) {
                     script {
+                        sh 'git checkout gh-pages'
                         sh 'git add .'
                         sh 'git commit -m "Update Helm chart"'
                         sh 'git push'
