@@ -22,6 +22,8 @@ pipeline {
             steps {
                 script{
                     dir("${CHART_DIR}") {
+                        sh 'rm -rf index.yaml'
+                        sh 'rm -rf *.tgz'
                         sh 'helm package .'
                     }
                 }
