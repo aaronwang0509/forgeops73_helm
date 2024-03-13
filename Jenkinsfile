@@ -12,7 +12,8 @@ pipeline {
     stages {
         stage('Prepare Environment') {
             steps {
-                sh "git checkout gh-pages"
+                sh "git checkout -f gh-pages"
+                sh "git pull origin gh-pages"
             }
         }
 
