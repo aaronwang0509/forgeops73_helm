@@ -12,8 +12,12 @@ pipeline {
     stages {
         stage('Prepare Environment') {
             steps {
-                sh "git checkout -f gh-pages"
-                sh "git pull origin gh-pages"
+                sshagent(['GITHUB_SSHKEY_ID']) {
+                    script {
+                        sh "git checkout -f gh-pages"
+                        sh "git pull origin gh-pages"
+                    }
+                } 
             }
         }
 
