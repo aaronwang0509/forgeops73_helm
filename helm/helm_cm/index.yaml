@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  helm:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-03-13T08:18:30.128756345-04:00"
+    description: A Helm chart for Kubernetes
+    digest: c8f95bf6546380d158d7ac9c6bb58f725c8974064fdf69560b82b93d431a5f3d
+    name: helm
+    type: application
+    urls:
+    - https://aaronwang0509.github.io/forgeops73_helm/helm-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-03-13T08:18:30.127470271-04:00"
