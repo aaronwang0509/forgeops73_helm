@@ -12,25 +12,28 @@ pipeline {
     stages {
         stage('Prepare Environment') {
             steps {
-                checkout scm
-                sh 'git config user.name "${USERNAME}"'
-                sh 'git config user.email "${EMAIL}"'
-                sh 'git checkout main'
+                script{
+                    sh 'git checkout main'
+                }
             }
         }
 
         stage('Package Helm Chart') {
             steps {
-                dir("${CHART_DIR}") {
-                    sh 'helm package .'
+                script{
+                    dir("${CHART_DIR}") {
+                        sh 'helm package .'
+                    }
                 }
             }
         }
 
         stage('Update Helm Repository') {
             steps {
-                dir("${CHART_DIR}") {
-                    sh 'helm repo index . --url ${REPO_URL} --merge index.yaml'
+                script{
+                    dir("${CHART_DIR}") {
+                        sh 'helm repo index . --url ${REPO_URL} --merge index.yaml'
+                    }
                 }
             }
         }
